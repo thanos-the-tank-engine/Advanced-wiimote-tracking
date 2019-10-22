@@ -1,17 +1,8 @@
 import uinput
 import cwiid
-import math
-import matplotlib.pyplot as plot
-print "ready to connect Wiimote A."
-wm1 = cwiid.Wiimote()
-wm1.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_STATUS
-print "connected"
-print "battery is at ", (100 * wm1.state.get('battery') / cwiid.BATTERY_MAX), "%"
-print "ready to connect Wiimote B."
-wm2 = cwiid.Wiimote()
-wm2.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_STATUS
-print "connected"
-print "battery is at ", (100 * wm2.state.get('battery') / cwiid.BATTERY_MAX), "%"
+import Main
+wm1 = Main.connectWiimote()
+wm2 = Main.connectWiimote()
 events = (
         uinput.BTN_0,
         uinput.BTN_1,

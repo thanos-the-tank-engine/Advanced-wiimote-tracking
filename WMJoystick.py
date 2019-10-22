@@ -18,7 +18,7 @@ while True:
         x = data['x']
         y = data['y']
         z = data['z']
-        btn = data[btn]
+        btn = data['btn']
         print x, ", ", y, ", ", z
         joystick.emit(uinput.ABS_X, int(x))
         joystick.emit(uinput.ABS_Y, int(y))

@@ -1,9 +1,3 @@
-"""
-Python application for 6DOF tracking of Nintendo Wii controllers and interpretation of resulting data
-into various emulated HID devices to enable the use of Wiimotes as a low cost alternative to a commercial 6DOF
-controller or tracking system to make this style of input for manipulating objects in CAD, 3D modelling, and gaming
-significantly more accessible
-"""
 import cv2 as openCV
 import cwiid
 import math
@@ -17,6 +11,10 @@ plot.ion()
         to multiplex 4+ IR emitters in different locations around the user to allow true 6DOF tracking
         and work out a potential solution for calibration of such a setup that would work with multiple controllers
 """
+
+# IDE thinks that there is a possibility of the local variable 'wiimote' being unbound.
+# this is wrong because when 'wiimote' is not defined it repeats the part that is supposed to define it.
+# noinspection PyUnboundLocalVariable
 def connectWiimote():
     print "Ready to connect."
     while True:
@@ -100,7 +98,8 @@ def handleWiimoteInput(wm):
 # Experimental 6DOF tracking using openCV
 # significantly more capable and accurate than trig-based tracker
 # but at the cost of latency and performance
-# TODO: implement OpenCV 6DOF tracking
+# TODO: implement OpenCV 6DOF tracking via solvepnp function
+# TODO: figure out the hell to use the solvepnp function
 def trackWiimote6DOF(wm):
     image_width = 1024
     image_height = 768
@@ -116,9 +115,9 @@ def trackWiimote6DOF(wm):
     fy = 1700
     cx = image_width / 2
     cy = image_height / 2
-    cv = [[fx,  0, cx,],
-          [0, fy,  cy,],
-          [0,   0,   1]]
+    cv = [[fx,  0, cx],
+          [0, fy,  cy],
+          [0,   0,  1]]
     if pnt_1.__class__ == dict and pnt_2.__class__ == dict and pnt_3.__class__ == dict and pnt_4.__class__ == dict:
         points = [pnt_1, pnt_2, pnt_3, pnt_4]
 
