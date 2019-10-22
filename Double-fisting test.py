@@ -1,3 +1,4 @@
+import threading
 import uinput
 import cwiid
 import Main
@@ -23,12 +24,7 @@ events = (
 joystick = uinput.Device(events)
 wm1.led = 1
 wm2.led = 2
-
+# TODO: complete input handling, separate handling for each controller onto it's own thread
 while True:
-    state1 = wm1.state
-    state2 = wm2.state
-    acc1 = state1.get('acc')
-    acc2 = state2.get('acc')
-    ir1 = state1['ir_src']
-    ir2 = state2['ir_src']
-    print ir1, ir2
+    data1 = Main.handleWiimoteInput(wm1)
+    data2 = Main.handleWiimoteInput(wm2)

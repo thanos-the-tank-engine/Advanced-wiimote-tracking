@@ -13,6 +13,8 @@ events = (
         )
 joystick = uinput.Device(events)
 wm = Main.connectWiimote()
+
+# TODO: add button handling
 while True:
         data = Main.handleWiimoteInput(wm)
         x = data['x']

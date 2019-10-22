@@ -31,6 +31,7 @@ def connectWiimote():
 
 
 # creates graphical visualization of input data and what the corrector outputs
+# TODO: remove this once the position corrector is fixed, reuse as calibration aid.
 def graphInputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y):
     plot.cla()
     plot.axis([0, 1024, 0, 768])
@@ -42,7 +43,6 @@ def graphInputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, 
 
 
 # TODO: figure out how the frick I can get libCWiid to give me calibration values for the accelerometer
-# TODO: FIX ANGLE CORRECTOR!
 """
 TODO: Add an exception to the angle calculator for 90 degrees, incorporate previous values and/or accelerometer data
 into angle calculation algorithm to accurately determine the orientation and eliminate the unpredictable values produced
@@ -60,6 +60,7 @@ def handleWiimoteInput(wm):
     ir = state['ir_src']
     pnt_1 = ir[0]
     pnt_2 = ir[1]
+    acc = state['acc']
     if pnt_1.__class__ == dict and pnt_2.__class__ == dict:
         pnt_1_x = pnt_1['pos'][0]
         pnt_1_y = pnt_1['pos'][1]
@@ -97,7 +98,8 @@ def handleWiimoteInput(wm):
 
 # Experimental 6DOF tracking using openCV
 # significantly more capable and accurate than trig-based tracker
-# but at the cost of latency and performance
+# but at the cost of latency, performance, and setup simplicity
+# requires a non-standard ir emitter setup, must be rectangular
 # TODO: implement OpenCV 6DOF tracking via solvepnp function
 # TODO: figure out the hell to use the solvepnp function
 def trackWiimote6DOF(wm):
