@@ -4,7 +4,7 @@ into various emulated HID devices to enable the use of Wiimotes as a low cost al
 controller or tracking system to make this style of input for manipulating objects in CAD, 3D modelling, and gaming
 significantly more accessible
 """
-import opencv
+import cv2 as openCV
 import cwiid
 import math
 import matplotlib
@@ -102,6 +102,23 @@ def handleWiimoteInput(wm):
 # but at the cost of latency and performance
 # TODO: implement OpenCV 6DOF tracking
 def trackWiimote6DOF(wm):
+    image_width = 1024
+    image_height = 768
     state = wm.state
     ir = state['ir_src']
+    pnt_1 = ir[0]['pos']
+    pnt_2 = ir[1]['pos']
+    pnt_3 = ir[2]['pos']
+    pnt_4 = ir[3]['pos']
+    shape = [[-1, -2, 0],
+             [1, 2, 0]]
+    fx = 1700
+    fy = 1700
+    cx = image_width / 2
+    cy = image_height / 2
+    cv = [[fx,  0, cx,],
+          [0, fy,  cy,],
+          [0,   0,   1]]
+    if pnt_1.__class__ == dict and pnt_2.__class__ == dict and pnt_3.__class__ == dict and pnt_4.__class__ == dict:
+        points = [pnt_1, pnt_2, pnt_3, pnt_4]
 
