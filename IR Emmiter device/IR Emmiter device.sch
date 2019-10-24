@@ -572,7 +572,7 @@ U 1 1 5DB5FAFB
 P 1100 5500
 F 0 "J1" H 1205 6367 50  0000 C CNN
 F 1 "USB_C_Receptacle_USB2.0" H 1205 6276 50  0000 C CNN
-F 2 "Connector_USB:USB_C_Receptacle_Amphenol_12401548E4-2A" H 1250 5500 50  0001 C CNN
+F 2 "Connector_USB:USB4085-GF-A_REVA" H 1250 5500 50  0001 C CNN
 F 3 "https://www.usb.org/sites/default/files/documents/usb_type-c.zip" H 1250 5500 50  0001 C CNN
 	1    1100 5500
 	1    0    0    -1  
@@ -1726,7 +1726,7 @@ Wire Wire Line
 Wire Wire Line
 	5100 3100 4100 3100
 $Comp
-L SJ-3580BNG:SJ-3580BNG_0 J4
+L IR-Emmiter-device-rescue:SJ-3580BNG_0-SJ-3580BNG J4
 U 1 1 5DD27667
 P 7700 2900
 F 0 "J4" H 7421 2904 50  0000 R CNN
@@ -1746,7 +1746,7 @@ Wire Wire Line
 Wire Wire Line
 	7350 2850 5950 2850
 $Comp
-L SJ-3580BNG:SJ-3580BNG_0 J3
+L IR-Emmiter-device-rescue:SJ-3580BNG_0-SJ-3580BNG J3
 U 1 1 5DDA2628
 P 7650 3950
 F 0 "J3" H 7371 3954 50  0000 R CNN
@@ -1766,7 +1766,7 @@ Wire Wire Line
 Wire Wire Line
 	6250 3850 6250 4000
 $Comp
-L SJ-3580BNG:SJ-3580BNG_0 J5
+L IR-Emmiter-device-rescue:SJ-3580BNG_0-SJ-3580BNG J5
 U 1 1 5DE2529E
 P 7950 5400
 F 0 "J5" H 7671 5404 50  0000 R CNN
@@ -1806,4 +1806,15 @@ Connection ~ 9700 5400
 Wire Wire Line
 	9700 5400 9800 5400
 Connection ~ 9650 5050
+$Comp
+L Graphic:Logo_Open_Hardware_Large LOGO1
+U 1 1 5DB23FB7
+P 1000 7350
+F 0 "LOGO1" H 1000 7850 50  0001 C CNN
+F 1 "Logo_Open_Hardware_Large" H 1000 6950 50  0001 C CNN
+F 2 "Symbol:OSHW-Logo_5.7x6mm_SilkScreen" H 1000 7350 50  0001 C CNN
+F 3 "~" H 1000 7350 50  0001 C CNN
+	1    1000 7350
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

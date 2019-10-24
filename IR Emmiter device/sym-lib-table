@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name IR-Emmiter-device-rescue)(type Legacy)(uri "${KIPRJMOD}/IR Emmiter device-rescue.lib")(options "")(descr ""))
+)
