@@ -69,7 +69,7 @@ trigonometry function based calculator for determining the rotation of the contr
 sort of computer vision based solution in order to minimize processing overhead.
 only able to track in 3 degrees of freedom, but with lower latency and a faster refresh rate
 '''
-
+# TODO: add ability to use gyroscope to continue tracking after controller is no longer pointing at ir emitter
 def handle_wm_3dof(wm):
     state = wm.state
     ir = state['ir_src']
