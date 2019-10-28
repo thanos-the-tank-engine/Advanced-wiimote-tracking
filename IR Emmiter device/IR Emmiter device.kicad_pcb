@@ -935,6 +935,11 @@
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
+    (model ${KISYS3DMOD}/Connector.3dshapes/CUI_SJ1-3533N.step
+      (offset (xyz 1 5 7))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 180 0 -90))
+    )
   )
 
   (module Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical (layer F.Cu) (tedit 59FED5CC) (tstamp 5DBCFE2D)

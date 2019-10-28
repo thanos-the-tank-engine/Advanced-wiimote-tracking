@@ -1,4 +1,4 @@
-import cv2 as openCV
+import cv2 as opencv
 import cwiid
 import math
 import matplotlib
@@ -15,7 +15,7 @@ plot.ion()
 # IDE thinks that there is a possibility of the local variable 'wiimote' being unbound.
 # this is wrong because when 'wiimote' is not defined it repeats the part that is supposed to define it.
 # noinspection PyUnboundLocalVariable
-def connectWiimote():
+def connect_wiimote():
     print "Ready to connect."
     while True:
         try:
@@ -24,15 +24,29 @@ def connectWiimote():
             print 'Failed to connect, try again'
             continue
         break
-    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_EXT
+    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_EXT | cwiid.RPT_ACC | cwiid.RPT_STATUS
     print "Connected!"
     print "Battery is at ", (100 * wiimote.state.get('battery') / cwiid.BATTERY_MAX), "%"
     return wiimote
 
+# Handles accelerometer calibration values
+
+def getacc(wm):
+    cal = wm.get_acc_cal(0)
+    lower_cal = cal[0]
+    upper_cal = cal[1]
+    state = wm.state
+    acc = state['acc']
+    return map(handlecal, acc, lower_cal, upper_cal)
+
+
+def handlecal(a, b, c):
+    return (a - b) * 255 / (c - b)
+
 
 # creates graphical visualization of input data and what the corrector outputs
 # TODO: remove this once the position corrector is fixed, reuse as calibration aid.
-def graphInputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y):
+def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y):
     plot.cla()
     plot.axis([0, 1024, 0, 768])
     plot.scatter([pnt_1_x, pnt_2_x], [pnt_1_y, pnt_2_y], color='blue', label='raw')
@@ -42,25 +56,27 @@ def graphInputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, 
     plot.draw()
 
 
-# TODO: figure out how the frick I can get libCWiid to give me calibration values for the accelerometer
 """
 TODO: Add an exception to the angle calculator for 90 degrees, incorporate previous values and/or accelerometer data
 into angle calculation algorithm to accurately determine the orientation and eliminate the unpredictable values produced
-when the controller is at exactly 90 degrees or flipped upside down.    
+when the controller is at exactly 90 degrees or flipped upside down. 
+The formula using ATAN() to get the angle ends up with 2 possible outcomes, but only outputs one of them.
+this causes unpredictable values in some cases. this issue can probably be fixed by taking the output and calculating
+the other possibility, then selecting one outcome based on some other input, such as the accelerometer.
 """
 
 '''
 trigonometry function based calculator for determining the rotation of the controller without needing to use any
 sort of computer vision based solution to minimize processing overhead.
-only able to provide 3DOF tracking, but has low latency
+only able to provide 3DOF tracking, but has lower latency and a faster refresh rate
 '''
 
-def handleWiimoteInput(wm):
+def handle_wm_3dof(wm):
     state = wm.state
     ir = state['ir_src']
     pnt_1 = ir[0]
     pnt_2 = ir[1]
-    acc = state['acc']
+    acc = getacc(wm)
     if pnt_1.__class__ == dict and pnt_2.__class__ == dict:
         pnt_1_x = pnt_1['pos'][0]
         pnt_1_y = pnt_1['pos'][1]
@@ -89,7 +105,7 @@ def handleWiimoteInput(wm):
         med_corr_y = (pnt_1_corr_y + pnt_2_corr_y) / 2
         # combine output data into a dict for easy return
         output = dict(x=med_corr_x, y=med_corr_y, z=angle, btn=state['buttons'])
-        graphInputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y)
+        graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y)
         return output
     else:
         output = dict(x=None, y=None, z=None, btn=state['buttons'])
@@ -102,7 +118,7 @@ def handleWiimoteInput(wm):
 # requires a non-standard ir emitter setup, must be rectangular
 # TODO: implement OpenCV 6DOF tracking via solvepnp function
 # TODO: figure out the hell to use the solvepnp function
-def trackWiimote6DOF(wm):
+def track_wm_6dof(wm):
     image_width = 1024
     image_height = 768
     state = wm.state

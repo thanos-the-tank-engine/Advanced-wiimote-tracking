@@ -1,13 +1,13 @@
 # HID Device emulator- Mouse
-import Main
+import main
 import cwiid
 from pynput.mouse import Button, Controller
 mouse = Controller()
-wm = Main.connectWiimote()
+wm = main.connect_wiimote()
 
 # TODO: figure out why this won't work
 while True:
-    data = Main.handleWiimoteInput(wm)
+    data = main.handle_wm_3dof(wm)
     if data.__class__ == dict:
         x = data['x']
         y = data['y']
