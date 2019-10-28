@@ -37,15 +37,14 @@ def getacc(wm):
     upper_cal = cal[1]
     state = wm.state
     acc = state['acc']
-    return map(handlecal, acc, lower_cal, upper_cal)
+    return map(handle_cal, acc, lower_cal, upper_cal)
 
 
-def handlecal(a, b, c):
+def handle_cal(a, b, c):
     return (a - b) * 255 / (c - b)
 
 
 # creates graphical visualization of input data and what the corrector outputs
-# TODO: remove this once the position corrector is fixed, reuse as calibration aid.
 def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y):
     plot.cla()
     plot.axis([0, 1024, 0, 768])
@@ -60,15 +59,15 @@ def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x,
 TODO: Add an exception to the angle calculator for 90 degrees, incorporate previous values and/or accelerometer data
 into angle calculation algorithm to accurately determine the orientation and eliminate the unpredictable values produced
 when the controller is at exactly 90 degrees or flipped upside down. 
-The formula using ATAN() to get the angle ends up with 2 possible outcomes, but only outputs one of them.
+The formula using ATAN() to get the angle actually has 2 possible outcomes, but only outputs one.
 this causes unpredictable values in some cases. this issue can probably be fixed by taking the output and calculating
 the other possibility, then selecting one outcome based on some other input, such as the accelerometer.
 """
 
 '''
 trigonometry function based calculator for determining the rotation of the controller without needing to use any
-sort of computer vision based solution to minimize processing overhead.
-only able to provide 3DOF tracking, but has lower latency and a faster refresh rate
+sort of computer vision based solution in order to minimize processing overhead.
+only able to track in 3 degrees of freedom, but with lower latency and a faster refresh rate
 '''
 
 def handle_wm_3dof(wm):

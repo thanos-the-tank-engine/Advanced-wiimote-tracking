@@ -10,3 +10,7 @@ Included in this repository:
 \> Python scripts
 \> KiCad project containing PCB layout and schematic for an improved sensor bar that expands on the capabilities of the Wii controller by enabling true 6DOF tracking.  
 \> 3D model for the optional case of the improved sensor bar
+
+Will be included in the future
+\> Firmware for improved sensor bar
+\> Maybe windows compatibility
