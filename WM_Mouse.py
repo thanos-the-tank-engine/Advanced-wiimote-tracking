@@ -5,14 +5,21 @@ from pynput.mouse import Button, Controller
 mouse = Controller()
 wm = main.connect_wiimote()
 
-# TODO: figure out why this won't work
 while True:
-    data = main.handle_wm_3dof(wm)
-    if data.__class__ == dict:
+    data = main.track_wm_3dof(wm)
+    try:
         x = data['x']
         y = data['y']
-        btn = data['btn']
         mouse.position = (x, y)
+        wm.led = 1
+    except ValueError:
+        wm.led = 15
+        main.time.sleep(.1)
+        wm.led = 0
+        main.time.sleep(.05)
+        pass
+    if data.__class__ == dict:
+        btn = data['btn']
         if btn == cwiid.BTN_A:
             mouse.press(Button.left)
         else:

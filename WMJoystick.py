@@ -1,38 +1,51 @@
 import main
 import uinput
+import time
 events = (
-    uinput.BTN_JOYSTICK,
     uinput.ABS_X + (0, 255, 0, 0),
     uinput.ABS_Y + (0, 255, 0, 0),
     uinput.ABS_Z + (0, 255, 0, 0),
-    uinput.ABS_RX + (0, 255, 0, 0),
-    uinput.ABS_RY + (0, 255, 0, 0),
-    uinput.ABS_RZ + (0, 255, 0, 0),
-    uinput.ABS_HAT0X + (0, 255, 0, 0),
-    uinput.ABS_HAT0Y + (0, 255, 0, 0)
+    uinput.BTN_A,
+    uinput.BTN_B,
+    uinput.BTN_0,
+    uinput.BTN_1,
+    uinput.BTN_DPAD_UP,
+    uinput.BTN_DPAD_DOWN,
+    uinput.BTN_DPAD_LEFT,
+    uinput.BTN_DPAD_RIGHT,
+    uinput.BTN_2,
+    uinput.BTN_3,
+    uinput.BTN_4,
     )
 joystick = uinput.Device(events)
 wm = main.connect_wiimote()
+time.sleep(1)
 
 while True:
-    data = main.handle_wm_3dof(wm)
-    x = data['x']
-    y = data['y']
-    z = data['z']
+    data = main.track_wm_3dof(wm)
+    if data.__class__ == dict and data['x'] != None:
+         x = data['x']
+         y = data['y']
+         z = data['z']
+    else:
+        x = 0
+        y = 0
+        z = 0
     btn = data['btn']
-    buttons = [int(i) for i in list('{0:0b}'.format(btn))]
-    print x, ", ", y, ", ", z
-    joystick.emit(uinput.ABS_X, int(x))
-    joystick.emit(uinput.ABS_Y, int(y))
+    buttons = list(format(btn,'013b'))
+    print buttons[0]
+    joystick.emit(uinput.ABS_X, int(x), syn=False)
+    joystick.emit(uinput.ABS_Y, int(y), syn=False)
     joystick.emit(uinput.ABS_Z, int(z*360)+180)
-    joystick.emit(uinput.BTN_A, buttons[3])
-    joystick.emit(uinput.BTN_B, buttons[2])
-    joystick.emit(uinput.BTN_0, buttons[1])
-    joystick.emit(uinput.BTN_1, buttons[0])
-    joystick.emit(uinput.BTN_DPAD_UP, buttons[11])
-    joystick.emit(uinput.BTN_DPAD_DOWN, buttons[10])
-    joystick.emit(uinput.BTN_DPAD_LEFT, buttons[8])
-    joystick.emit(uinput.BTN_DPAD_RIGHT, buttons[9])
-    joystick.emit(uinput.BTN_2, buttons[12])
-    joystick.emit(uinput.BTN_3, buttons[4])
-    joystick.emit(uinput.BTN_4, buttons[7])
+    joystick.emit(uinput.BTN_A, buttons[9] == '1', syn=False)
+    joystick.emit(uinput.BTN_B, buttons[10] == '1', syn=False)
+    joystick.emit(uinput.BTN_0, buttons[12] == '1', syn=False)
+    joystick.emit(uinput.BTN_1, buttons[11] == '1', syn=False)
+    joystick.emit(uinput.BTN_DPAD_UP, buttons[1] == '1', syn=False)
+    joystick.emit(uinput.BTN_DPAD_DOWN, buttons[2] == '1', syn=False)
+    joystick.emit(uinput.BTN_DPAD_LEFT, buttons[4] == '1', syn=False)
+    joystick.emit(uinput.BTN_DPAD_RIGHT, buttons[3] == '1', syn=False)
+    joystick.emit(uinput.BTN_2, buttons[0] == '1', syn=False)
+    joystick.emit(uinput.BTN_3, buttons[8] == '1', syn=False)
+    joystick.emit(uinput.BTN_4, buttons[5] == '1', syn=True)
+# For some fucking reason 1 != '1'.

@@ -26,5 +26,5 @@ wm1.led = 1
 wm2.led = 2
 # TODO: complete input handling, separate handling for each controller onto it's own thread
 while True:
-    data1 = main.handle_wm_3dof(wm1)
-    data2 = main.handle_wm_3dof(wm2)
+    data1 = main.track_wm_3dof(wm1)
+    data2 = main.track_wm_3dof(wm2)

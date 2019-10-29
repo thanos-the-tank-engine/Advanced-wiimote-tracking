@@ -2,6 +2,7 @@ import cv2 as opencv
 import cwiid
 import math
 import matplotlib
+import time
 matplotlib.use('Qt5Agg')
 from matplotlib import pyplot as plot
 plot.ion()
@@ -24,7 +25,8 @@ def connect_wiimote():
             print 'Failed to connect, try again'
             continue
         break
-    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_EXT | cwiid.RPT_ACC | cwiid.RPT_STATUS
+    time.sleep(.1)
+    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_EXT | cwiid.RPT_ACC
     print "Connected!"
     print "Battery is at ", (100 * wiimote.state.get('battery') / cwiid.BATTERY_MAX), "%"
     return wiimote
@@ -44,6 +46,15 @@ def handle_cal(a, b, c):
     return (a - b) * 255 / (c - b)
 
 
+# handles MotionPlus data, converts to usable deg/s values
+def handle_motion_plus(state):
+    mp = state['motionplus']['angle_rate']
+    return map(handle_mp_cal, mp)
+
+
+def handle_mp_cal(val):
+    return float(val - 8192) / float(595)
+
 # creates graphical visualization of input data and what the corrector outputs
 def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y):
     plot.cla()
@@ -55,22 +66,14 @@ def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x,
     plot.draw()
 
 
-"""
-TODO: Add an exception to the angle calculator for 90 degrees, incorporate previous values and/or accelerometer data
-into angle calculation algorithm to accurately determine the orientation and eliminate the unpredictable values produced
-when the controller is at exactly 90 degrees or flipped upside down. 
-The formula using ATAN() to get the angle actually has 2 possible outcomes, but only outputs one.
-this causes unpredictable values in some cases. this issue can probably be fixed by taking the output and calculating
-the other possibility, then selecting one outcome based on some other input, such as the accelerometer.
-"""
-
+# TODO: tweak values until this works smoothly
 '''
 trigonometry function based calculator for determining the rotation of the controller without needing to use any
 sort of computer vision based solution in order to minimize processing overhead.
 only able to track in 3 degrees of freedom, but with lower latency and a faster refresh rate
 '''
 # TODO: add ability to use gyroscope to continue tracking after controller is no longer pointing at ir emitter
-def handle_wm_3dof(wm):
+def track_wm_3dof(wm):
     state = wm.state
     ir = state['ir_src']
     pnt_1 = ir[0]
@@ -84,14 +87,24 @@ def handle_wm_3dof(wm):
 
         delta_x = float(pnt_1_x - pnt_2_x)
         delta_y = float(pnt_1_y - pnt_2_y)
-        dist = math.sqrt(math.pow(delta_x, 2) + math.pow(delta_y, 2))
-
-        try:
-            angle = float(math.atan(delta_y / delta_x))
-        except ZeroDivisionError:
-            angle = 0
-            pass
-
+        if delta_y == 0:
+            angles = [0, 180]
+        elif delta_x == 0:
+            angles = [90, 270]
+        else:
+            theta_1 = math.degrees(math.atan(delta_y / delta_x))
+            if theta_1 < 0:
+                theta_1 += 360
+            if theta_1 >= 180:
+                theta_2 = theta_1 - 180
+            else:
+                theta_2 = theta_1 + 180
+            angles = [theta_1, theta_2]
+        print angles
+        if acc[2] < 0:
+            angle = math.radians(angles[0])
+        else:
+            angle = math.radians(angles[1])
         s = float(math.sin(angle))
         c = float(math.cos(angle))
 
@@ -100,7 +113,7 @@ def handle_wm_3dof(wm):
         pnt_2_corr_x = float((pnt_2_x - 512) * c - (pnt_2_y - 384) * s) + 512
         pnt_2_corr_y = float((pnt_2_x - 512) * s - (pnt_2_y - 384) * c) + 384
 
-        med_corr_x = (pnt_1_corr_x + pnt_2_corr_x) / 2
+        med_corr_x = ((pnt_1_corr_x + pnt_2_corr_x)-1024) / -2
         med_corr_y = (pnt_1_corr_y + pnt_2_corr_y) / 2
         # combine output data into a dict for easy return
         output = dict(x=med_corr_x, y=med_corr_y, z=angle, btn=state['buttons'])
