@@ -14,16 +14,13 @@ events = (
     uinput.ABS_Z + (0, 255, 0, 0),
     uinput.ABS_RX + (0, 255, 0, 0),
     uinput.ABS_RY + (0, 255, 0, 0),
-    uinput.ABS_RZ + (0, 255, 0, 0),
-    uinput.ABS_HAT0X + (0, 255, 0, 0),
-    uinput.ABS_HAT0Y + (0, 255, 0, 0),
-    uinput.ABS_HAT1X + (0, 255, 0, 0),
-    uinput.ABS_HAT1Y + (0, 255, 0, 0),
+    uinput.ABS_RZ + (0, 255, 0, 0)
     )
 
 joystick = uinput.Device(events)
 wm1.led = 1
 wm2.led = 2
+
 # TODO: complete input handling, separate handling for each controller onto it's own thread
 while True:
     data1 = main.track_wm_3dof(wm1)

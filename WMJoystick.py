@@ -1,7 +1,7 @@
 import main
 import uinput
 import time
-events = (
+events = [
     uinput.ABS_X + (0, 255, 0, 0),
     uinput.ABS_Y + (0, 255, 0, 0),
     uinput.ABS_Z + (0, 255, 0, 0),
@@ -16,23 +16,23 @@ events = (
     uinput.BTN_2,
     uinput.BTN_3,
     uinput.BTN_4,
-    )
+    ]
 joystick = uinput.Device(events)
 wm = main.connect_wiimote()
 time.sleep(1)
 
 while True:
     data = main.track_wm_3dof(wm)
-    if data.__class__ == dict and data['x'] != None:
-         x = data['x']
-         y = data['y']
-         z = data['z']
+    if data.__class__ == dict and data['x'] is not None:
+        x = data['x']
+        y = data['y']
+        z = data['z']
     else:
         x = 0
         y = 0
         z = 0
     btn = data['btn']
-    buttons = list(format(btn,'013b'))
+    buttons = list(format(btn, '013b'))
     print buttons[0]
     joystick.emit(uinput.ABS_X, int(x), syn=False)
     joystick.emit(uinput.ABS_Y, int(y), syn=False)
@@ -48,4 +48,4 @@ while True:
     joystick.emit(uinput.BTN_2, buttons[0] == '1', syn=False)
     joystick.emit(uinput.BTN_3, buttons[8] == '1', syn=False)
     joystick.emit(uinput.BTN_4, buttons[5] == '1', syn=True)
-# For some fucking reason 1 != '1'.
+# For some reason 1 != '1'. this caused the bug where button presses were not being sent.
