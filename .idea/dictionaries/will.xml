@@ -2,6 +2,7 @@
   <dictionary name="will">
     <words>
       <w>arduino</w>
+      <w>nunchuk</w>
       <w>wiimote</w>
     </words>
   </dictionary>

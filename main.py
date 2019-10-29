@@ -5,15 +5,13 @@ import time
 from matplotlib import pyplot as plot
 plot.ion()
 
-# TODO: comb the spaghetti
 """
   TODO: get semi-accurate numbers for input lag and then determine viability of using an arduino
         to multiplex 4+ IR emitters in different locations around the user to allow true 6DOF tracking
         and work out a potential solution for calibration of such a setup that would work with multiple controllers
 """
 
-# IDE thinks that there is a possibility of the local variable 'wiimote' being unbound.
-# this is wrong because when 'wiimote' is not defined it repeats the part that is supposed to define it.
+# IDE thinks that there is a possibility of the local variable 'wiimote' not getting defined. there is not.
 # noinspection PyUnboundLocalVariable
 def connect_wiimote():
     print "Ready to connect."
@@ -65,6 +63,12 @@ def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x,
     plot.legend()
     plot.pause(0.05)
     plot.draw()
+
+# Handle the buttons correctly, placed into individual function for convenience
+def handle_buttons(btn):
+    # Takes the integer provided for the button data and uses a string formatting function to convert to a binary array.
+    # only issue is that it outputs each digit as a fkn string, which has to be converted to an integer to be usable.
+    return map(int, list(format(btn, '013b')))
 
 
 # TODO: tweak values until this works smoothly
@@ -125,15 +129,15 @@ def track_wm_3dof(wm):
         med_corr_x = ((pnt_1_corr_x + pnt_2_corr_x) - 1024) / -2
         med_corr_y = (pnt_1_corr_y + pnt_2_corr_y) / 2
         # combine output data into a dict for ease of use
-        output = dict(x=med_corr_x, y=med_corr_y, z=angle, btn=state['buttons'])
+        output = dict(x=med_corr_x, y=med_corr_y, z=angle, btn=handle_buttons(state['buttons']), ext=None)
         # graph input data and output data for debugging
         graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y)
-        return output
     else:
         # if no usable IR data is received, output nothing but button data
-        output = dict(x=None, y=None, z=None, btn=state['buttons'])
-        return output
-
+        output = dict(x=None, y=None, z=None, btn=handle_buttons(state['buttons']), ext=None)
+    if state['ext_type'] == 1:
+        output['ext'] = state['nunchuk']
+    return output
 
 # Experimental 6DOF tracking using openCV
 # significantly more capable and accurate than trig-based tracker

@@ -13,4 +13,4 @@ Included in this repository:
 
 Will be included in the future
 \> Firmware for improved sensor bar
-\> Maybe windows compatibility
+\> Maybe windows compatibility, if you windows-using plebians get lucky
