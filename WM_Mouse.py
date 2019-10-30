@@ -1,6 +1,5 @@
 # HID Device emulator- Mouse
 import main
-import cwiid
 from pynput.mouse import Button, Controller
 mouse = Controller()
 wm = main.connect_wiimote()
@@ -8,23 +7,20 @@ wm = main.connect_wiimote()
 while True:
     data = main.track_wm_3dof(wm)
     try:
-        x = data['x']
+        x = abs(data['x'] - 1024)
         y = data['y']
-        mouse.position = (x, y)
+        mouse.position = (x*2, y*2)
         wm.led = 1
     except ValueError:
-        wm.led = 15
-        main.time.sleep(.1)
-        wm.led = 0
-        main.time.sleep(.05)
+        pass
+    except TypeError:
         pass
     if data.__class__ == dict:
-        btn = data['btn']
-        if btn == cwiid.BTN_A:
+        if data['btn'][9]:
             mouse.press(Button.left)
         else:
             mouse.release(Button.left)
-        if btn == cwiid.BTN_B:
+        if data['btn'][10]:
             mouse.press(Button.right)
         else:
             mouse.release(Button.right)
