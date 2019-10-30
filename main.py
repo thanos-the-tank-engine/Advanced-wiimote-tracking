@@ -31,11 +31,9 @@ def connect_wiimote():
 
 # Handles accelerometer calibration values
 
-def getacc(wm):
-    cal = wm.get_acc_cal(0)
+def getacc(state, cal):
     lower_cal = cal[0]
     upper_cal = cal[1]
-    state = wm.state
     acc = state['acc']
     return map(handle_cal, acc, lower_cal, upper_cal)
 
@@ -71,7 +69,6 @@ def handle_buttons(btn):
     return map(int, list(format(btn, '013b')))
 
 
-# TODO: tweak values until this works smoothly
 '''
 trigonometry function based calculator for determining the rotation of the controller without needing to use any
 sort of computer vision based solution in order to minimize processing overhead.
@@ -82,11 +79,12 @@ only able to track in 3 degrees of freedom, but with lower latency and a faster 
 def track_wm_3dof(wm):
     # Get data from controller and break out into separate variables
     state = wm.state
+    cal = wm.get_acc_cal(0)
     ir = state['ir_src']
     pnt_1 = ir[0]
     pnt_2 = ir[1]
     # Convert accelerometer data into more useful form
-    acc = getacc(wm)
+    acc = getacc(state, cal)
     # Determine if IR data is useful
     if pnt_1.__class__ == dict and pnt_2.__class__ == dict:
         # breaks out IR points into X and Y values
@@ -111,27 +109,16 @@ def track_wm_3dof(wm):
             else:
                 theta_2 = theta_1 + 180
             angles = [theta_1, theta_2]
-        print angles
         # Choose angle from 2 possibilities based on accelerometer
         if acc[2] < 0:
             angle = math.radians(angles[0])
         else:
             angle = math.radians(angles[1])
-        # calculate sine and cosine of angle once for small performance gain
-        s = float(math.sin(angle))
-        c = float(math.cos(angle))
-        # attempt to use a point transformation to correct for rotation of controller
-        pnt_1_corr_x = float((pnt_1_x - 512) * c - (pnt_1_y - 384) * s) + 512
-        pnt_1_corr_y = float((pnt_1_x - 512) * s - (pnt_1_y - 384) * c) + 384
-        pnt_2_corr_x = float((pnt_2_x - 512) * c - (pnt_2_y - 384) * s) + 512
-        pnt_2_corr_y = float((pnt_2_x - 512) * s - (pnt_2_y - 384) * c) + 384
         # calculate median of IR points to use as output coordinates
-        med_corr_x = ((pnt_1_corr_x + pnt_2_corr_x) - 1024) / -2
-        med_corr_y = (pnt_1_corr_y + pnt_2_corr_y) / 2
+        med_x = (pnt_1_x + pnt_2_x) / 2
+        med_y = (pnt_1_y + pnt_2_y) / 2
         # combine output data into a dict for ease of use
-        output = dict(x=med_corr_x, y=med_corr_y, z=angle, btn=handle_buttons(state['buttons']), ext=None)
-        # graph input data and output data for debugging
-        graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x, pnt_1_corr_y, pnt_2_corr_y)
+        output = dict(x=med_x, y=med_y, z=angle, btn=handle_buttons(state['buttons']), ext=None)
     else:
         # if no usable IR data is received, output nothing but button data
         output = dict(x=None, y=None, z=None, btn=handle_buttons(state['buttons']), ext=None)

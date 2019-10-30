@@ -44,7 +44,7 @@ def wm_joystick(wm, nunchuk, joystick):
     if data.__class__ == dict and data['x'] is not None:
         x = data['x']
         y = data['y']
-        z = data['z']
+        z = data['z'] * 16
     # If good data is not provided, set vars x,y, and z to 0.
     else:
         x = 0
@@ -53,7 +53,7 @@ def wm_joystick(wm, nunchuk, joystick):
     # Send x,y, and z values to UInput as joystick axis data
     joystick.emit(uinput.ABS_X, int(x), syn=False)
     joystick.emit(uinput.ABS_Y, int(y), syn=False)
-    joystick.emit(uinput.ABS_Z, int(z*360)+180)
+    joystick.emit(uinput.ABS_Z, int(z))
     # Pass button presses along to UInput as joystick buttons
     joystick.emit(uinput.BTN_A, data['btn'][9], syn=False)
     joystick.emit(uinput.BTN_B, data['btn'][10], syn=False)
