@@ -1,7 +1,9 @@
 import main
 import uinput
 import time
-
+import cwiid
+nunchuk = 0
+cal = None
 def start():
     events = [
         uinput.ABS_X + (0, 255, 0, 0),
@@ -25,7 +27,7 @@ def start():
         uinput.BTN_5,
         uinput.BTN_6,
     ]
-    nunchuk = 0
+    global nunchuk
     wm = main.connect_wiimote()
     wm.led = 1
     # If Nunchuk is connected, add extra events to support it
@@ -33,13 +35,17 @@ def start():
         events += nunchuk_events
         nunchuk = 1
     joystick = uinput.Device(events)
+    global cal
+    cal = wm.get_acc_cal(0)
     while True:
         time.sleep(.05)
-        wm_joystick(wm, nunchuk, joystick)
+        wm_joystick(wm, joystick)
 
 
-def wm_joystick(wm, nunchuk, joystick):
-    data = main.track_wm_3dof(wm)
+def wm_joystick(wm, joystick):
+    global cal
+    global nunchuk
+    data = main.track_wm_3dof(wm.state, cal)
     # if good data is provided, split it up into vars x,y, and z.
     if data.__class__ == dict and data['x'] is not None:
         x = data['x']
@@ -55,23 +61,25 @@ def wm_joystick(wm, nunchuk, joystick):
     joystick.emit(uinput.ABS_Y, int(y), syn=False)
     joystick.emit(uinput.ABS_Z, int(z))
     # Pass button presses along to UInput as joystick buttons
-    joystick.emit(uinput.BTN_A, data['btn'][9], syn=False)
-    joystick.emit(uinput.BTN_B, data['btn'][10], syn=False)
-    joystick.emit(uinput.BTN_0, data['btn'][12], syn=False)
-    joystick.emit(uinput.BTN_1, data['btn'][11], syn=False)
-    joystick.emit(uinput.BTN_DPAD_UP, data['btn'][1], syn=False)
-    joystick.emit(uinput.BTN_DPAD_DOWN, data['btn'][2], syn=False)
-    joystick.emit(uinput.BTN_DPAD_LEFT, data['btn'][4], syn=False)
-    joystick.emit(uinput.BTN_DPAD_RIGHT, data['btn'][3], syn=False)
-    joystick.emit(uinput.BTN_2, data['btn'][0], syn=False)
-    joystick.emit(uinput.BTN_3, data['btn'][8], syn=False)
-    joystick.emit(uinput.BTN_4, data['btn'][5], syn=True)
+    joystick.emit(uinput.BTN_A, data['btn'] & cwiid.BTN_A, syn=False)
+    joystick.emit(uinput.BTN_B, data['btn'] & cwiid.BTN_B, syn=False)
+    joystick.emit(uinput.BTN_0, data['btn'] & cwiid.BTN_1 > 0, syn=False)
+    joystick.emit(uinput.BTN_1, data['btn'] & cwiid.BTN_2, syn=False)
+    joystick.emit(uinput.BTN_DPAD_UP, data['btn'] & cwiid.BTN_UP, syn=False)
+    joystick.emit(uinput.BTN_DPAD_DOWN, data['btn'] & cwiid.BTN_DOWN, syn=False)
+    joystick.emit(uinput.BTN_DPAD_LEFT, data['btn'] & cwiid.BTN_LEFT, syn=False)
+    joystick.emit(uinput.BTN_DPAD_RIGHT, data['btn'] & cwiid.BTN_RIGHT, syn=False)
+    joystick.emit(uinput.BTN_2, data['btn'] & cwiid.BTN_PLUS, syn=False)
+    joystick.emit(uinput.BTN_3, data['btn'] & cwiid.BTN_MINUS, syn=False)
+    joystick.emit(uinput.BTN_4, data['btn'] & cwiid.BTN_HOME, syn=True)
     # If nunchuk exists, handle it.
     if nunchuk:
         nunchuk_data = data['ext']
         stick = nunchuk_data['stick']
-        nunchuk_btn = map(int, list(format(nunchuk_data['buttons'], '02b')))
+        nunchuk_btn = nunchuk_data['buttons']
         joystick.emit(uinput.ABS_RX, stick[0], syn=False)
         joystick.emit(uinput.ABS_RY, stick[1], syn=False)
-        joystick.emit(uinput.BTN_5, nunchuk_btn[0], syn=False)
-        joystick.emit(uinput.BTN_6, nunchuk_btn[1])
+        joystick.emit(uinput.BTN_5, nunchuk_btn & cwiid.NUNCHUK_BTN_Z, syn=False)
+        joystick.emit(uinput.BTN_6, nunchuk_btn & cwiid.NUNCHUK_BTN_C)
+
+start()

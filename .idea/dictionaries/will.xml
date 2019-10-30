@@ -2,6 +2,8 @@
   <dictionary name="will">
     <words>
       <w>arduino</w>
+      <w>mesg</w>
+      <w>motionplus</w>
       <w>nunchuk</w>
       <w>wiimote</w>
     </words>

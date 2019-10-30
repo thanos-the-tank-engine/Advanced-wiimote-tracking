@@ -2,9 +2,10 @@ import cv2 as opencv
 import cwiid
 import math
 import time
-from matplotlib import pyplot as plot
+import matplotlib.pyplot as plot
+import matplotlib as mpl
+plot.style.use('dark_background')
 plot.ion()
-
 """
   TODO: get semi-accurate numbers for input lag and then determine viability of using an arduino
         to multiplex 4+ IR emitters in different locations around the user to allow true 6DOF tracking
@@ -22,8 +23,15 @@ def connect_wiimote():
             print 'Failed to connect, try again'
             continue
         break
-    time.sleep(.1)
-    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN | cwiid.RPT_EXT | cwiid.RPT_ACC
+    wiimote.enable(cwiid.FLAG_MOTIONPLUS)
+    time.sleep(.5)
+    # Check if wii remote has a MotionPlus extension and set report mode accordingly
+    if wiimote.state['ext_type'] == 4:
+        wiimote.rpt_mode = 254
+        print 'MotionPlus Detected, enabling extension!'
+    else:
+        wiimote.disable(cwiid.FLAG_MOTIONPLUS)
+        wiimote.rpt_mode = 254
     print "Connected!"
     print "Battery is at ", (100 * wiimote.state.get('battery') / cwiid.BATTERY_MAX), "%"
     return wiimote
@@ -42,14 +50,26 @@ def handle_cal(a, b, c):
     return (a - b) * 255 / (c - b)
 
 
-# handles MotionPlus data, converts to usable deg/s values
-def handle_motion_plus(state):
-    mp = state['motionplus']['angle_rate']
-    return map(handle_mp_cal, mp)
+# handles MotionPlus data
+angle_persistent = [0.0, 0.0, 0.0]
+def handle_mp(mesg, b):
+    global angle_persistent
+    mp = map(handle_mp_cal, mesg[2][1]['angle_rate'])
+    angle_persistent = map(add_angle, angle_persistent, mp)
+    return dict(abs=angle_persistent, rel=mp)
+
+def add_angle(a, b):
+    c = a + b
+    if c < 0:
+        c += 360
+    if c > 360:
+        c -= 360
+    return c
 
 
 def handle_mp_cal(val):
-    return float(val - 8192) / float(595)
+    # convert gyroscope value into degrees/sec by subtracting the offset and dividing by a number from the Wiibrew Wiki
+    return float(val - 8192) / (595)
 
 
 # creates graphical visualization of input data and what the corrector outputs
@@ -62,12 +82,6 @@ def graph_inputs(pnt_1_x, pnt_2_x, pnt_1_y, pnt_2_y, pnt_1_corr_x, pnt_2_corr_x,
     plot.pause(0.05)
     plot.draw()
 
-# Handle the buttons correctly, placed into individual function for convenience
-def handle_buttons(btn):
-    # Takes the integer provided for the button data and uses a string formatting function to convert to a binary array.
-    # only issue is that it outputs each digit as a fkn string, which has to be converted to an integer to be usable.
-    return map(int, list(format(btn, '013b')))
-
 
 '''
 trigonometry function based calculator for determining the rotation of the controller without needing to use any
@@ -76,10 +90,8 @@ only able to track in 3 degrees of freedom, but with lower latency and a faster 
 '''
 
 # TODO: add ability to use gyroscope to continue tracking after controller is no longer pointing at ir emitter
-def track_wm_3dof(wm):
+def track_wm_3dof(state, cal):
     # Get data from controller and break out into separate variables
-    state = wm.state
-    cal = wm.get_acc_cal(0)
     ir = state['ir_src']
     pnt_1 = ir[0]
     pnt_2 = ir[1]
@@ -118,10 +130,10 @@ def track_wm_3dof(wm):
         med_x = (pnt_1_x + pnt_2_x) / 2
         med_y = (pnt_1_y + pnt_2_y) / 2
         # combine output data into a dict for ease of use
-        output = dict(x=med_x, y=med_y, z=angle, btn=handle_buttons(state['buttons']), ext=None)
+        output = dict(x=med_x, y=med_y, z=angle, btn=state['buttons'], ext=None)
     else:
         # if no usable IR data is received, output nothing but button data
-        output = dict(x=None, y=None, z=None, btn=handle_buttons(state['buttons']), ext=None)
+        output = dict(x=None, y=None, z=None, btn=state['buttons'], ext=None)
     if state['ext_type'] == 1:
         output['ext'] = state['nunchuk']
     return output
