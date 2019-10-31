@@ -6,9 +6,9 @@ nunchuk = 0
 cal = None
 def start():
     events = [
-        uinput.ABS_X + (0, 255, 0, 0),
-        uinput.ABS_Y + (0, 255, 0, 0),
-        uinput.ABS_Z + (0, 255, 0, 0),
+        uinput.ABS_X + (0, 1024, 0, 0),
+        uinput.ABS_Y + (0, 768, 0, 0),
+        uinput.ABS_Z + (0, 360, 0, 0),
         uinput.BTN_A,
         uinput.BTN_B,
         uinput.BTN_0,

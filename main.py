@@ -3,7 +3,6 @@ import cwiid
 import math
 import time
 import matplotlib.pyplot as plot
-import matplotlib as mpl
 plot.style.use('dark_background')
 plot.ion()
 """
@@ -23,16 +22,34 @@ def connect_wiimote():
             print 'Failed to connect, try again'
             continue
         break
+    print "Connected!"
     wiimote.enable(cwiid.FLAG_MOTIONPLUS)
     time.sleep(.5)
     # Check if wii remote has a MotionPlus extension and set report mode accordingly
-    if wiimote.state['ext_type'] == 4:
-        wiimote.rpt_mode = 254
-        print 'MotionPlus Detected, enabling extension!'
+    ext = wiimote.state['ext_type']
+    if ext == cwiid.EXT_MOTIONPLUS:
+        wiimote.rpt_mode = 143
+        print 'MotionPlus detected'
+    elif ext == cwiid.EXT_BALANCE:
+        wiimote.disable(cwiid.FLAG_MOTIONPLUS)
+        wiimote.rpt_mode = 67
+        print 'Balance board detected'
+    elif ext == cwiid.EXT_NUNCHUK:
+        wiimote.disable(cwiid.FLAG_MOTIONPLUS)
+        wiimote.rpt_mode = 31
+        print 'Nunchuk detected'
+    elif ext == cwiid.EXT_CLASSIC:
+        wiimote.disable(cwiid.FLAG_MOTIONPLUS)
+        wiimote.rpt_mode = 47
+        print 'Wii Classic Controller detected'
+    elif ext == cwiid.EXT_NONE:
+        wiimote.disable(cwiid.FLAG_MOTIONPLUS)
+        wiimote.rpt_mode = 15
+        print 'No extension detected'
     else:
         wiimote.disable(cwiid.FLAG_MOTIONPLUS)
         wiimote.rpt_mode = 254
-    print "Connected!"
+        print 'Unknown extension detected'
     print "Battery is at ", (100 * wiimote.state.get('battery') / cwiid.BATTERY_MAX), "%"
     return wiimote
 
@@ -56,7 +73,7 @@ def handle_mp(mesg, b):
     global angle_persistent
     mp = map(handle_mp_cal, mesg[2][1]['angle_rate'])
     angle_persistent = map(add_angle, angle_persistent, mp)
-    return dict(abs=angle_persistent, rel=mp)
+    return dict(abs=angle_persistent, rel=mp, time=b)
 
 def add_angle(a, b):
     c = a + b
@@ -69,7 +86,7 @@ def add_angle(a, b):
 
 def handle_mp_cal(val):
     # convert gyroscope value into degrees/sec by subtracting the offset and dividing by a number from the Wiibrew Wiki
-    return float(val - 8192) / (595)
+    return float(val - 8192) / 595
 
 
 # creates graphical visualization of input data and what the corrector outputs
