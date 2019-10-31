@@ -90,7 +90,9 @@ only able to track in 3 degrees of freedom, but with lower latency and a faster 
 '''
 
 # TODO: add ability to use gyroscope to continue tracking after controller is no longer pointing at ir emitter
+old_pos = [0.0, 0.0, 0.0]
 def track_wm_3dof(state, cal):
+    global old_pos
     # Get data from controller and break out into separate variables
     ir = state['ir_src']
     pnt_1 = ir[0]
@@ -123,13 +125,14 @@ def track_wm_3dof(state, cal):
             angles = [theta_1, theta_2]
         # Choose angle from 2 possibilities based on accelerometer
         if acc[2] < 0:
-            angle = math.radians(angles[0])
+            angle = angles[0]
         else:
-            angle = math.radians(angles[1])
+            angle = angles[1]
         # calculate median of IR points to use as output coordinates
         med_x = (pnt_1_x + pnt_2_x) / 2
         med_y = (pnt_1_y + pnt_2_y) / 2
         # combine output data into a dict for ease of use
+        old_pos = [med_x, med_y, angle]
         output = dict(x=med_x, y=med_y, z=angle, btn=state['buttons'], ext=None)
     else:
         # if no usable IR data is received, output nothing but button data

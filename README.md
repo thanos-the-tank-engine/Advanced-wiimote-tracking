@@ -11,6 +11,13 @@ Included in this repository:
 \> KiCad project containing PCB layout and schematic for an improved sensor bar that expands on the capabilities of the Wii controller by enabling true 6DOF tracking.  
 \> 3D model for the optional case of the improved sensor bar
 
-Will be included in the future
-\> Firmware for improved sensor bar
-\> Maybe windows compatibility, if you windows-using plebians get lucky
+Will be included in the future  
+\> Firmware for improved sensor bar  
+\> Maybe windows compatibility, if you windows-using plebians get lucky  
+
+
+#Setup  
+Right now, none of the setup process is automated. this means you will have to do it all yourself.
+You will need to install my modified version of the Cwiid library that has support for the balance board added to it.
+you will have to compile it yourself. I have not bothered trying to run this outside of my IDE because none of the UI exists yet.
+If you want to use this on its own, good luck with that. either wait until it's finished or finish it yourself.
